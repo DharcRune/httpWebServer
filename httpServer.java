@@ -38,6 +38,15 @@ public class httpServer extends Thread
             out = new DataOutputStream(socket.getOutputStream());
             inString = in.readLine();
 
+            int b;
+            StringBuilder buf = new StringBuilder();
+            while ((b = in.read()) != -1)
+            {
+                buf.append((char) b);
+            }
+
+            System.out.println(buf);
+
             Calendar cal = Calendar.getInstance();
             cal.getTime();
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -77,6 +86,7 @@ public class httpServer extends Thread
                 break;
             case "POST":
                 if(inString.contains("calc")) {  }
+                System.out.println("Made it to the POST case.");
                 break;
             case "HEAD":
                 respondHeader("200", "html", 0, out);
