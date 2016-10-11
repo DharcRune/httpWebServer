@@ -116,21 +116,44 @@ public class httpServer extends Thread
 
     private  static void postCalculatorResponse(String inString, String postParameters, DataOutputStream out) throws Exception
     {
-        String method = inString.substring(11, inString.lastIndexOf(" "));
+        String method = "";
+        String xVariable = "";
+        String yVariable = "";
 
-        String xVariable = postParameters.substring(postParameters.indexOf("=") + 1, postParameters.indexOf("&"));
-        String yVariable = postParameters.substring(postParameters.lastIndexOf("=") + 1);
+        try
+        {
+            method = inString.substring(11, inString.lastIndexOf(" "));
+            xVariable = postParameters.substring(postParameters.indexOf("=") + 1, postParameters.indexOf("&"));
+            yVariable = postParameters.substring(postParameters.lastIndexOf("=") + 1);
+        }
+        catch (Exception e)
+        {
+            String response = "Internal Server Error";
+            respondHeader("500", "html", response.length(), out);
+            out.write(response.getBytes());
+        }
 
         test(xVariable, yVariable, method, out);
     }
 
     private static void getCalculatorResponse(String inString, DataOutputStream out) throws Exception
     {
-        String method = inString.substring(10, inString.indexOf("?"));
+        String method = "";
+        String xVariable = "";
+        String yVariable = "";
 
-        String xVariable = inString.substring(inString.indexOf("=") + 1, inString.indexOf("&"));
-        String yVariable = inString.substring(inString.lastIndexOf("=") + 1, inString.lastIndexOf("/") - 5);
-
+        try
+        {
+            method = inString.substring(10, inString.indexOf("?"));
+            xVariable = inString.substring(inString.indexOf("=") + 1, inString.indexOf("&"));
+            yVariable = inString.substring(inString.lastIndexOf("=") + 1, inString.lastIndexOf("/") - 5);
+        }
+        catch (Exception e)
+        {
+            String response = "Internal Server Error";
+            respondHeader("500", "html", response.length(), out);
+            out.write(response.getBytes());
+        }
         test(xVariable, yVariable, method, out);
     }
 
