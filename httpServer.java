@@ -30,6 +30,7 @@ public class httpServer extends Thread
         BufferedReader in;
         DataOutputStream out;
         String inString;
+        String postParameters;
 
         public clientConnection(Socket connectionSocket) throws Exception
         {
@@ -38,14 +39,31 @@ public class httpServer extends Thread
             out = new DataOutputStream(socket.getOutputStream());
             inString = in.readLine();
 
-            int b;
-            StringBuilder buf = new StringBuilder();
-            while ((b = in.read()) != -1)
-            {
-                buf.append((char) b);
-            }
 
-            System.out.println(buf);
+            if(inString.contains("POST"))
+            {
+                int contentLength = -1;
+                while (true)
+                {
+                    final String line = in.readLine();
+                    final String contentLengthStr = "Content-Length: ";
+
+                    if (line.startsWith(contentLengthStr))
+                    {
+                        contentLength = Integer.parseInt(line.substring(contentLengthStr.length()));
+                    }
+
+                    if (line.length() == 0)
+                    {
+                        break;
+                    }
+                }
+
+                final char[] content = new char[contentLength];
+                in.read(content);
+                postParameters = new String(content);
+                postParameters = postParameters.substring(postParameters.lastIndexOf("x"));
+            }
 
             Calendar cal = Calendar.getInstance();
             cal.getTime();
@@ -60,7 +78,7 @@ public class httpServer extends Thread
             {
                 if(inString != null)
                 {
-                    respondContent(inString, out);
+                    respondContent(inString, postParameters, out);
                 }
 
                 out.flush();
@@ -74,7 +92,7 @@ public class httpServer extends Thread
         }
     }
 
-    private static void respondContent(String inString, DataOutputStream out) throws Exception
+    private static void respondContent(String inString, String postParameters, DataOutputStream out) throws Exception
     {
         String method = inString.substring(0, inString.indexOf("/") - 1);
 
@@ -85,8 +103,7 @@ public class httpServer extends Thread
                 else { getWebsiteResponse(inString, out); }
                 break;
             case "POST":
-                if(inString.contains("calc")) {  }
-                System.out.println("Made it to the POST case.");
+                if(inString.contains("calc")) { postCalculatorResponse(inString, postParameters, out); }
                 break;
             case "HEAD":
                 respondHeader("200", "html", 0, out);
@@ -97,14 +114,29 @@ public class httpServer extends Thread
         }
     }
 
+    private  static void postCalculatorResponse(String inString, String postParameters, DataOutputStream out) throws Exception
+    {
+        String method = inString.substring(11, inString.lastIndexOf(" "));
+
+        String xVariable = postParameters.substring(postParameters.indexOf("=") + 1, postParameters.indexOf("&"));
+        String yVariable = postParameters.substring(postParameters.lastIndexOf("=") + 1);
+
+        test(xVariable, yVariable, method, out);
+    }
+
     private static void getCalculatorResponse(String inString, DataOutputStream out) throws Exception
     {
-        Calculator calculator = new Calculator();
-
         String method = inString.substring(10, inString.indexOf("?"));
 
         String xVariable = inString.substring(inString.indexOf("=") + 1, inString.indexOf("&"));
         String yVariable = inString.substring(inString.lastIndexOf("=") + 1, inString.lastIndexOf("/") - 5);
+
+        test(xVariable, yVariable, method, out);
+    }
+
+    private static void test(String xVariable, String yVariable, String method, DataOutputStream out) throws Exception
+    {
+        Calculator calculator = new Calculator();
         String response;
 
         try
